@@ -1,14 +1,18 @@
-import os
 from column import Column
-
 
 class Table:
 
-    def __init__(self, name, columns):
+    def __init__(self, name, path, cols):
         self.name = name
-        self.columns = list()
-        for column in columns:
-            self.columns.append(Column(column, self))
+        self.path = path
+        self.columns = {}
+        for col in cols:
+            self.columns[col] = Column(col, self)
         
-    def __unicode__():
-        return u'Table %d' % self.name
+        
+    def __unicode__(self):
+        return u'Table %s' % self.name
+    
+    
+    def __repr__(self):
+        return r'Table %s' % self.name
