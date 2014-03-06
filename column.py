@@ -78,7 +78,40 @@ class Column:
         os.rename(tempPath, self.table.path)
     
     def mod(self,values):    # Takes a list of tuples of (fromValue, toValue) and changes any matching values to the new value  
-        pass
+        # Check if the GTFS file exists
+        if not os.path.isfile(self.table.path):
+            return
+            
+        # Assign temporary filename in GTFS path
+        temp = ''.join(random.choice(string.lowercase) for i in range(6)) + '.txt'
+        tempPath = self.table.path + '.' + temp
+        
+        # Get the column number of the column
+        columnNumber = self.getColumn()
+
+        # Build a list of column values for checking against
+        valueList = [i[0] for i in values]
+        
+        # Read through the input file looking for matches in the appropriate column
+        # If a match is found, swap the value in the temp file
+        with open(self.table.path, 'r') as inFile, open(tempPath, 'w') as outFile:
+            for line in inFile:
+                vals = line.split(',')
+                if vals[columnNumber] in valueList:
+                    newValue = values[valueList.index(vals[columnNumber])][1]
+                    vals[columnNumber] = str(newValue)
+                    newLine = ','.join(vals)
+                    outFile.write(newLine)
+                else:
+                    outFile.write(line)
+                    
+        # Handle any dependent table columns
+        for col in self.childColumns:
+            col.mod(values)
+        
+        # Swap the old file for the new one
+        os.remove(self.table.path)
+        os.rename(tempPath, self.table.path)
     
     
     def getColumn(self):
