@@ -118,5 +118,23 @@ class Column:
         with open(self.table.path, 'r') as f:
             line = f.readline()
             return line.split(',').index(self.name)
+        
+    def makeSequence(self):
+        # set up list for id and unique int value
+        trips = []
+        i = 0
+
+        # Loop through the trips file and build the list to pass in for mod
+        with open(self.table.path, 'r') as f:
+            for line in f:
+                vals = line.split(',')
+                trips.append((vals[2],i))
+                i = i + 1
+
+        # Remove the column heading        
+        trips.pop(0)
+        
+        # Send the list of trips to mod
+        self.mod(trips)
                 
             
