@@ -2,9 +2,11 @@ from column import Column
 
 class Table:
 
-    def __init__(self, name, path, cols):
+    def __init__(self, name, path, gtfsPath, cols, exists):
         self.name = name
         self.path = path
+        self.gtfsPath = gtfsPath
+        self.exists = exists
         self.columns = {}
         for col in cols:
             self.columns[col] = Column(col, self)

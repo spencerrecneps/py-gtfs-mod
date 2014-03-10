@@ -102,7 +102,11 @@ class GTFSModifier:
                                                           'feed_version']}}
         self.tables = {}
         for name, vals in t.iteritems():
-            self.tables[name] = Table(name,os.path.join(self.path, name + '.txt') ,vals['columns'])
+            exists = False              # Assume a table doesn't exist unless we find it
+            filePath = os.path.join(self.path, name + '.txt')
+            if os.path.isfile(filePath):
+                exists = True
+            self.tables[name] = Table(name,filePath,self.path,vals['columns'], exists)
             
         # Set up column relationships
         self.tables['stops'].columns['stop_id'].addChild(self.tables['stop_times'].columns['stop_id'])
