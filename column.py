@@ -21,7 +21,7 @@ class Column:
         self.childColumns.append(childColumn)
     
     
-    def rm(self,values):        # Takes a list of values to look for and produces a new GTFS file with matching values removed
+    def rm(self, values, replace=False):        # Takes a list of values to look for and produces a new GTFS file with matching values removed
         # Check if the GTFS file exists
         if not os.path.isfile(self.table.path):
             return
@@ -42,12 +42,13 @@ class Column:
         for col in self.childColumns:
             col.rm(values)
         
-        # Swap the old file for the new one
-        os.remove(self.table.path)
-        os.rename(tempPath, self.table.path)
+        # Swap the old file for the new one if replace is True
+        if replace:
+            os.remove(self.table.path)
+            os.rename(tempPath, self.table.path)
         
         
-    def keep(self, values):     # Takes a list of values to look for and produces a new GTFS file with only the matching rows     
+    def keep(self, values, replace=False):     # Takes a list of values to look for and produces a new GTFS file with only the matching rows     
         # Check if the GTFS file exists
         if not os.path.isfile(self.table.path):
             return
@@ -68,11 +69,12 @@ class Column:
         for col in self.childColumns:
             col.keep(values)
         
-        # Swap the old file for the new one
-        os.remove(self.table.path)
-        os.rename(tempPath, self.table.path)
+        # Swap the old file for the new one if replace is true
+        if replace:
+            os.remove(self.table.path)
+            os.rename(tempPath, self.table.path)
     
-    def mod(self,values):    # Takes a list of tuples of (fromValue, toValue) and changes any matching values to the new value  
+    def mod(self,values,replace=False):    # Takes a list of tuples of (fromValue, toValue) and changes any matching values to the new value  
         # Check if the GTFS file exists
         if not os.path.isfile(self.table.path):
             return
@@ -101,9 +103,10 @@ class Column:
         for col in self.childColumns:
             col.mod(values)
         
-        # Swap the old file for the new one
-        os.remove(self.table.path)
-        os.rename(tempPath, self.table.path)
+        # Swap the old file for the new one if replace is new
+        if replace:
+            os.remove(self.table.path)
+            os.rename(tempPath, self.table.path)
     
     
     def getColumn(self):
