@@ -1,12 +1,13 @@
 import os, random, string
+from relationship import Relationship
 
 class Column:
 
     def __init__(self, name, table):
         self.name = name
         self.table = table
-        self.childColumns = []      #childColumns is a list that contains existing column objects
         self.columnNumber = self.getColumn()
+        self.relationships = []
     
     
     def __unicode__(self):
@@ -15,10 +16,10 @@ class Column:
     
     def __repr__(self):
         return r'Column %s in %s' % (self.name, self.table)
-    
         
-    def addChild(self, childColumn):
-        self.childColumns.append(childColumn)
+    
+    def addRelationship(self, direct, column=None, helperColumn=None):
+        self.relationships.append(Relationship(direct, column, helperColumn))
     
     
     def rm(self, values, replace=False):        # Takes a list of values to look for and produces a new GTFS file with matching values removed
@@ -39,15 +40,15 @@ class Column:
                     outFile.write(line)
                     
         # Handle any dependent table columns
-        for col in self.childColumns:
-            col.rm(values)
-        
+        for rel in self.relationships:
+            rel.column.rm(values, replace)
+                        
         # Swap the old file for the new one if replace is True
         if replace:
             os.remove(self.table.path)
             os.rename(tempPath, self.table.path)
         
-        
+        '''
     def keep(self, values, replace=False):     # Takes a list of values to look for and produces a new GTFS file with only the matching rows     
         # Check if the GTFS file exists
         if not os.path.isfile(self.table.path):
@@ -108,7 +109,7 @@ class Column:
             os.remove(self.table.path)
             os.rename(tempPath, self.table.path)
     
-    
+    '''
     def getColumn(self):
         if self.table.exists:
             with open(self.table.path, 'r') as f:
@@ -119,15 +120,16 @@ class Column:
                     return None
         else: return None
         
+    '''    
     def makeSequence(self, outputValues=False):
-        '''Searches through the routes and stop_times and replaces
+        Searches through the routes and stop_times and replaces
            every route_id with a number. Numbers are generated
            starting at 1 and increasing by 1 for each subsequent
            new route_id encountered.
            If outputValues is set to true, a file will be
            created that contains the mappings between the
            old route_id and the new one
-        '''
+        
         # set up list for id and unique int value
         trips = []
         i = 0
@@ -151,5 +153,13 @@ class Column:
                 m.write('route_id,sequence_nm\n')
                 for mapping in trips:
                     m.write(','.join(str(x) for x in mapping) + '\n')
+                    '''
+                    
+    def getTempPath(self):
+        '''Assigns a temporary path'''
+        # Assign temporary filename in GTFS path
+        temp = ''.join(random.choice(string.lowercase) for i in range(6)) + '.txt'
+        tempPath = self.table.path + '.' + temp
+        return tempPath
                 
             

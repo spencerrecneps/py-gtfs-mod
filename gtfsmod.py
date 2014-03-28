@@ -108,17 +108,25 @@ class GTFSModifier:
                 exists = True
             self.tables[name] = Table(name,filePath,self.path,vals['columns'], exists)
             
-        # Set up column relationships
-        self.tables['stops'].columns['stop_id'].addChild(self.tables['stop_times'].columns['stop_id'])
-        self.tables['stops'].columns['stop_id'].addChild(self.tables['transfers'].columns['from_stop_id'])
-        self.tables['stops'].columns['stop_id'].addChild(self.tables['transfers'].columns['to_stop_id'])
-        self.tables['routes'].columns['route_id'].addChild(self.tables['trips'].columns['route_id'])
-        self.tables['trips'].columns['trip_id'].addChild(self.tables['stop_times'].columns['trip_id'])
-        self.tables['trips'].columns['trip_id'].addChild(self.tables['frequencies'].columns['trip_id'])
-        self.tables['calendar'].columns['service_id'].addChild(self.tables['trips'].columns['service_id'])
-        self.tables['calendar'].columns['service_id'].addChild(self.tables['calendar_dates'].columns['service_id'])
-        self.tables['shapes'].columns['shape_id'].addChild(self.tables['trips'].columns['shape_id'])
-    
+        # Set up direct column relationships
+        self.tables['stops'].columns['stop_id'].addRelationship(True, self.tables['stop_times'].columns['stop_id'])
+        self.tables['stops'].columns['stop_id'].addRelationship(True, self.tables['transfers'].columns['from_stop_id'])
+        self.tables['stops'].columns['stop_id'].addRelationship(True, self.tables['transfers'].columns['to_stop_id'])
+        self.tables['routes'].columns['route_id'].addRelationship(True, self.tables['trips'].columns['route_id'])
+        self.tables['trips'].columns['trip_id'].addRelationship(True, self.tables['stop_times'].columns['trip_id'])
+        self.tables['trips'].columns['trip_id'].addRelationship(True, self.tables['frequencies'].columns['trip_id'])
+        self.tables['calendar'].columns['service_id'].addRelationship(True, self.tables['trips'].columns['service_id'])
+        self.tables['calendar'].columns['service_id'].addRelationship(True, self.tables['calendar_dates'].columns['service_id'])
+        self.tables['shapes'].columns['shape_id'].addRelationship(True, self.tables['trips'].columns['shape_id'])
+        
+        # Set up indirect column relationships
+        self.tables['agency'].columns['agency_id'].addRelationship(False,
+                                                                   self.tables['routes'].columns['route_id'],
+                                                                   self.tables['routes'].columns['agency_id'])
+        self.tables['routes'].columns['route_id'].addRelationship(False, 
+                                                                  self.tables['trips'].columns['trip_id'],
+                                                                  self.tables['trips'].columns['route_id'])
+                
     
     def __unicode__(self):
         return u'GTFS Modifier Object with path %s' % self.path
