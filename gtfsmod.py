@@ -112,7 +112,6 @@ class GTFSModifier:
         self.tables['stops'].columns['stop_id'].addRelationship(True, self.tables['stop_times'].columns['stop_id'])
         self.tables['stops'].columns['stop_id'].addRelationship(True, self.tables['transfers'].columns['from_stop_id'])
         self.tables['stops'].columns['stop_id'].addRelationship(True, self.tables['transfers'].columns['to_stop_id'])
-        self.tables['routes'].columns['route_id'].addRelationship(True, self.tables['trips'].columns['route_id'])
         self.tables['trips'].columns['trip_id'].addRelationship(True, self.tables['stop_times'].columns['trip_id'])
         self.tables['trips'].columns['trip_id'].addRelationship(True, self.tables['frequencies'].columns['trip_id'])
         self.tables['calendar'].columns['service_id'].addRelationship(True, self.tables['trips'].columns['service_id'])

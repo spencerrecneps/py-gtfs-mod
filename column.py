@@ -41,7 +41,7 @@ class Column:
                     
         # Handle any dependent table columns
         for rel in self.relationships:
-            rel.column.rm(values, replace)
+            rel.rm(values, replace)
                         
         # Swap the old file for the new one if replace is True
         if replace:
