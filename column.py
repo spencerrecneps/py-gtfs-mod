@@ -28,8 +28,7 @@ class Column:
             return
         
         # Assign temporary filename in GTFS path
-        temp = ''.join(random.choice(string.lowercase) for i in range(6)) + '.txt'
-        tempPath = self.table.path + '.' + temp
+        tempPath = self.getTempPath()
         
         # Read through the input file looking for matches in the appropriate column
         # If a match is found, leave it out in writing to the temp file
@@ -48,27 +47,30 @@ class Column:
             os.remove(self.table.path)
             os.rename(tempPath, self.table.path)
         
-        '''
+        
     def keep(self, values, replace=False):     # Takes a list of values to look for and produces a new GTFS file with only the matching rows     
         # Check if the GTFS file exists
         if not os.path.isfile(self.table.path):
             return
         
         # Assign temporary filename in GTFS path
-        temp = ''.join(random.choice(string.lowercase) for i in range(6)) + '.txt'
-        tempPath = self.table.path + '.' + temp
+        tempPath = self.getTempPath()
         
         # Read through the input file looking for matches in the appropriate column
-        # If a match is found, leave it out in writing to the temp file
+        # If a match is found, leave it in when writing to the temp file
         with open(self.table.path, 'r') as inFile, open(tempPath, 'w') as outFile:
+            # Write the header to the new file
+            header = inFile.readline()
+            outFile.write(header)
+            # Loop through and write matching lines
             for line in inFile:
                 vals = line.split(',')
                 if vals[self.columnNumber] in values:
                     outFile.write(line)
                     
         # Handle any dependent table columns
-        for col in self.childColumns:
-            col.keep(values)
+        for rel in self.relationships:
+            rel.keep(values, replace)
         
         # Swap the old file for the new one if replace is true
         if replace:
@@ -101,15 +103,18 @@ class Column:
                     outFile.write(line)
                     
         # Handle any dependent table columns
-        for col in self.childColumns:
-            col.mod(values)
+        for rel in self.relationships:
+            if rel.shallow:
+                rel.column.mod(values, replace)
+            else:
+                rel.helperColumn.mod(values, replace)
         
         # Swap the old file for the new one if replace is new
         if replace:
             os.remove(self.table.path)
             os.rename(tempPath, self.table.path)
     
-    '''
+    
     def getColumn(self):
         if self.table.exists:
             with open(self.table.path, 'r') as f:
@@ -120,15 +125,15 @@ class Column:
                     return None
         else: return None
         
-    '''    
-    def makeSequence(self, outputValues=False):
-        Searches through the routes and stop_times and replaces
+    
+    def makeSequence(self, replace=False, outputValues=True):
+        '''Searches through the column and its relationships and replaces
            every route_id with a number. Numbers are generated
            starting at 1 and increasing by 1 for each subsequent
            new route_id encountered.
            If outputValues is set to true, a file will be
            created that contains the mappings between the
-           old route_id and the new one
+           old route_id and the new one'''
         
         # set up list for id and unique int value
         trips = []
@@ -145,15 +150,15 @@ class Column:
         trips.pop(0)
         
         # Send the list of trips to mod
-        self.mod(trips)
+        self.mod(trips, replace)
         
         # Write the ID mapping to file (if applicable)
         if outputValues:
-            with open(os.path.join(self.table.gtfsPath,'route_mapping.txt'), 'w') as m:
+            with open(os.path.join(self.table.gtfsPath,self.name + '_mapping.txt'), 'w') as m:
                 m.write('route_id,sequence_nm\n')
                 for mapping in trips:
                     m.write(','.join(str(x) for x in mapping) + '\n')
-                    '''
+                    
                     
     def getTempPath(self):
         '''Assigns a temporary path'''

@@ -34,7 +34,7 @@ class Relationship:
     
     def rm(self, values, replace):
         if self.shallow:
-            self.column.rm(values, True)
+            self.column.rm(values, replace)
         else:
             helperValues = []
             
@@ -59,5 +59,33 @@ class Relationship:
                 os.remove(self.table.path)
                 os.rename(tempPath, self.table.path)
                         
+                        
+    def keep(self, values, replace):
+        if self.shallow:
+            self.column.keep(values, replace)
+        else:
+            helperValues = []
             
-    
+            # Assign temporary filename
+            tempPath = self.column.getTempPath()
+            
+            # Iterate the temporary file and find the helper column
+            with open(self.column.table.path, 'r') as inFile, open(tempPath, 'w') as outFile:
+                # Write the header to the new file
+                header = inFile.readline()
+                outFile.write(header)
+                # Loop through and write matching lines
+                for line in inFile:
+                    vals = line.split(',')
+                    if vals[self.helperColumn.columnNumber] in values:
+                        outFile.write(line)
+                        helperValues.append(vals[self.column.columnNumber])
+                                
+            # Handle any dependent table columns
+            for rel in self.column.relationships:
+                rel.column.keep(helperValues, replace)
+                        
+            # Swap the old file for the new one if replace is True
+            if replace:
+                os.remove(self.table.path)
+                os.rename(tempPath, self.table.path)
