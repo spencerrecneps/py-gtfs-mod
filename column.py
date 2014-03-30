@@ -22,7 +22,15 @@ class Column:
         self.relationships.append(Relationship(direct, column, helperColumn))
     
     
-    def rm(self, values, replace=False):        # Takes a list of values to look for and produces a new GTFS file with matching values removed
+    def rm(self, values, replace=False):
+        '''Takes a list of values to look for and produces
+           a new GTFS file with matching values removed.
+           Will also cascade to child fields. For example,
+           calling this on routes.route_id would remove
+           all trips and stop_times associated with the
+           route being removed.
+           Future enhancement: take a cascade parameter
+           that stops it from cascading if desired'''
         # Check if the GTFS file exists
         if not os.path.isfile(self.table.path):
             return
@@ -48,7 +56,9 @@ class Column:
             os.rename(tempPath, self.table.path)
         
         
-    def keep(self, values, replace=False):     # Takes a list of values to look for and produces a new GTFS file with only the matching rows     
+    def keep(self, values, replace=False):
+        '''Takes a list of values to look for and produces 
+           a new GTFS file with only the matching rows'''     
         # Check if the GTFS file exists
         if not os.path.isfile(self.table.path):
             return
@@ -77,7 +87,11 @@ class Column:
             os.remove(self.table.path)
             os.rename(tempPath, self.table.path)
     
-    def mod(self,values,replace=False):    # Takes a list of tuples of (fromValue, toValue) and changes any matching values to the new value  
+    
+    def mod(self,values,replace=False):
+        '''Takes a list of tuples of (fromValue, toValue) and 
+           changes any matching values to the new value. Also
+           cascades to related columns, much like rm()'''  
         # Check if the GTFS file exists
         if not os.path.isfile(self.table.path):
             return
@@ -116,6 +130,8 @@ class Column:
     
     
     def getColumn(self):
+        '''Helper function for determining the
+           index number of the column'''
         if self.table.exists:
             with open(self.table.path, 'r') as f:
                 line = f.readline()

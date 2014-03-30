@@ -127,8 +127,47 @@ class GTFSModifier:
                                                                   self.tables['trips'].columns['route_id'])
                 
     
+    def makeShapes(self, path):
+        '''Creates a geojson file with all of the stops.
+           Future enhancement = read the shapes file and take
+           and arg for creating a shape for a particular
+           trip'''
+        from geojson import Feature, FeatureCollection, Point
+        import geojson
+        
+        features = []
+        stops = self.tables['stops']
+        with open(stops.path, 'r') as stopsFile:
+            next(stopsFile)         #skip header row
+            for line in stopsFile:
+                vals = line.split(',')
+                
+                # Establish the point
+                point = Point((float(vals[stops.columns['stop_lon'].columnNumber]),
+                               float(vals[stops.columns['stop_lat'].columnNumber])))
+                
+                # Establish attribute data
+                attrs = {}
+                for key, col in stops.columns.iteritems():
+                    if col.columnNumber:
+                        attrs[col.name] = vals[col.columnNumber]
+                
+                # Create the feature
+                feat = Feature(geometry=point,
+                               id=vals[stops.columns['stop_id'].columnNumber],
+                               properties=attrs)
+                
+                # Add to the list of features
+                features.append(feat)
+        
+        fc = FeatureCollection(features)
+        with open(path, 'w') as outFile:
+            geojson.dump(fc, outFile)
+        
+    
     def __unicode__(self):
         return u'GTFS Modifier Object with path %s' % self.path
     
+    
     def __repr__(self):
-        return r'GTFS Modifier Object with path %s' % self.path
+        return r'GTFS Modifier Object with path %s' % self.path    
