@@ -20,3 +20,28 @@ from gtfsmod import GTFSModifier
 g = GTFSModifier('/home/username/path/to/gtfs')
 g.tables['stops']       # returns the object corresponding to the stops.txt table
 ```
+
+## Columns
+Column objects refer to the columns within each GTFS table. Each Table class contains a dictionary object called 'columns'.
+#### Example
+```
+from gtfsmod import GTFSModifier
+g = GTFSModifier('/home/username/path/to/gtfs')
+stops = g.tables['stops']
+stops.columns['stop_id']		# returns the object corresponding to the stop_id column in the stops.txt table
+```
+Most of the functionality of GTFS Modifier is contained in the column class. For example, you can remove items, change their values, or isolate them from the rest of the system. Here are the functions for each of these primary tasks:
+*rm()
+*mod()
+*keep()
+Each of these functions takes a list of values that it matches against the values in the column and then acts accordingly when it finds a match.
+#### Example
+```
+from gtfsmod import GTFSModifier
+g = GTFSModifier('/home/username/path/to/gtfs')
+stops = g.tables['stops']
+stop_id = stops.columns['stop_id']
+stop_id.rm([1,2])				# removes any entries for stop_id 1 or 2
+stop_id.mod([(3,9),(4,8)])		# replaces any entry with stop_id 3 with '9' or with stop_id 4 with '8'
+stop_id.keep([7])				# removes all entries except stop_id 7 
+```
