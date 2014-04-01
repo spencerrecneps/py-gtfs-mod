@@ -149,7 +149,7 @@ class GTFSModifier:
                 # Establish attribute data
                 attrs = {}
                 for key, col in stops.columns.iteritems():
-                    if col.columnNumber:
+                    if col.columnNumber is not None:
                         attrs[col.name] = vals[col.columnNumber]
                 
                 # Create the feature
