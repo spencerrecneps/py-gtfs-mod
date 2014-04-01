@@ -31,9 +31,9 @@ stops = g.tables['stops']
 stops.columns['stop_id']		# returns the object corresponding to the stop_id column in the stops.txt table
 ```
 Most of the functionality of GTFS Modifier is contained in the column class. For example, you can remove items, change their values, or isolate them from the rest of the system. Here are the functions for each of these primary tasks:
-*rm()
-*mod()
-*keep()
+* rm()
+* mod()
+* keep()
 Each of these functions takes a list of values that it matches against the values in the column and then acts accordingly when it finds a match.
 #### Example
 ```
