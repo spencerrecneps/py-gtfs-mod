@@ -1,0 +1,16 @@
+# GTFS Modifier
+
+A simple Python-based tool for making changes to GTFS files. For more information on GTFS, please see the reference documentation at https://developers.google.com/transit/gtfs/.
+
+## Basic usage
+
+Create a new GTFSModifier class that points to the directory where the tables are stored.
+### Example
+```
+from gtfsmod import GTFSModifier
+g = GTFSModifier('/home/username/path/to/gtfs')
+```
+From here, you can reference the tables and columns and call functions as outlined below.
+
+## Tables
+Table objects reference
