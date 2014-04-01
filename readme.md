@@ -34,6 +34,7 @@ Most of the functionality of GTFS Modifier is contained in the column class. For
 * rm()
 * mod()
 * keep()
+
 Each of these functions takes a list of values that it matches against the values in the column and then acts accordingly when it finds a match.
 #### Example
 ```
