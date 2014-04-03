@@ -46,3 +46,11 @@ stop_id.rm([1,2])				# removes any entries for stop_id 1 or 2
 stop_id.mod([(3,9),(4,8)])		# replaces any entry with stop_id 3 with '9' or with stop_id 4 with '8'
 stop_id.keep([7])				# removes all entries except stop_id 7 
 ```
+
+Column operations can also cascade through to other tables if there is a dependency. For example, removing a route from the routes table will remove the trips associated with that route in the trips table, and would also remove related stop_times entries.
+#### Example
+```
+from gtfsmod import GTFSModifier
+g = GTFSModifier('/home/username/path/to/gtfs')
+g.tables['routes'].columns['route_id'].rm(['1,2'])	# removes routes 1 and 2 from routes, trips, and stop_times
+```
