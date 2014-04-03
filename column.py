@@ -174,7 +174,7 @@ class Column:
         # Write the ID mapping to file (if applicable)
         if mapping:
             with open(os.path.join(self.table.gtfsPath,self.name + '_mapping.txt'), 'w') as m:
-                m.write('route_id,sequence_nm\n')
+                m.write(self.name + ',sequence_nm\n')
                 for mapping in trips:
                     m.write(','.join(str(x) for x in mapping) + '\n')
                     
