@@ -32,7 +32,7 @@ class Relationship:
         self.helperColumn = column
         
     
-    def rm(self, values, replace):
+    def rm(self, values, cascade=False, replace=False):
         if self.shallow:
             self.column.rm(values, replace)
         else:
@@ -51,8 +51,9 @@ class Relationship:
                         helperValues.append(vals[self.column.columnNumber])
             
             # Handle any dependent table columns
-            for rel in self.column.relationships:
-                rel.column.rm(helperValues, replace)
+            if cascade:
+                for rel in self.column.relationships:
+                    rel.column.rm(helperValues, cascade=cascade, replace=replace)
                         
             # Swap the old file for the new one if replace is True
             if replace:
@@ -60,7 +61,7 @@ class Relationship:
                 os.rename(tempPath, self.table.path)
                         
                         
-    def keep(self, values, replace):
+    def keep(self, values, cascade=False, replace=False):
         if self.shallow:
             self.column.keep(values, replace)
         else:
@@ -82,8 +83,9 @@ class Relationship:
                         helperValues.append(vals[self.column.columnNumber])
                                 
             # Handle any dependent table columns
-            for rel in self.column.relationships:
-                rel.column.keep(helperValues, replace)
+            if cascade:
+                for rel in self.column.relationships:
+                    rel.column.keep(helperValues, cascade=cascade, replace=replace)
                         
             # Swap the old file for the new one if replace is True
             if replace:

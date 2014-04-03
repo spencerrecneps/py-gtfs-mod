@@ -22,7 +22,7 @@ class Column:
         self.relationships.append(Relationship(direct, column, helperColumn))
     
     
-    def rm(self, values, replace=False):
+    def rm(self, values, cascade=False, replace=False):
         '''Takes a list of values to look for and produces
            a new GTFS file with matching values removed.
            Will also cascade to child fields. For example,
@@ -47,8 +47,9 @@ class Column:
                     outFile.write(line)
                     
         # Handle any dependent table columns
-        for rel in self.relationships:
-            rel.rm(values, replace)
+        if cascade:
+            for rel in self.relationships:
+                rel.rm(values, cascade=cascade, replace=replace)
                         
         # Swap the old file for the new one if replace is True
         if replace:
@@ -56,7 +57,7 @@ class Column:
             os.rename(tempPath, self.table.path)
         
         
-    def keep(self, values, replace=False):
+    def keep(self, values, cascade=False, replace=False):
         '''Takes a list of values to look for and produces 
            a new GTFS file with only the matching rows'''     
         # Check if the GTFS file exists
@@ -79,8 +80,9 @@ class Column:
                     outFile.write(line)
                     
         # Handle any dependent table columns
-        for rel in self.relationships:
-            rel.keep(values, replace)
+        if cascade:
+            for rel in self.relationships:
+                rel.keep(values, cascade=cascade, replace=replace)
         
         # Swap the old file for the new one if replace is true
         if replace:
@@ -88,7 +90,7 @@ class Column:
             os.rename(tempPath, self.table.path)
     
     
-    def mod(self,values,replace=False):
+    def mod(self,values,cascade=False,replace=False):
         '''Takes a list of tuples of (fromValue, toValue) and 
            changes any matching values to the new value. Also
            cascades to related columns, much like rm()'''  
@@ -117,11 +119,12 @@ class Column:
                     outFile.write(line)
                     
         # Handle any dependent table columns
-        for rel in self.relationships:
-            if rel.shallow:
-                rel.column.mod(values, replace)
-            else:
-                rel.helperColumn.mod(values, replace)
+        if cascade:
+            for rel in self.relationships:
+                if rel.shallow:
+                    rel.column.mod(values, cascade=False, replace=replace)
+                else:
+                    rel.helperColumn.mod(values, cascade=True, replace=replace)
         
         # Swap the old file for the new one if replace is new
         if replace:
@@ -142,12 +145,12 @@ class Column:
         else: return None
         
     
-    def makeSequence(self, replace=False, outputValues=True):
+    def makeSequence(self, replace=False, mapping=True):
         '''Searches through the column and its relationships and replaces
            every route_id with a number. Numbers are generated
            starting at 1 and increasing by 1 for each subsequent
            new route_id encountered.
-           If outputValues is set to true, a file will be
+           If mapping is set to true, a file will be
            created that contains the mappings between the
            old route_id and the new one'''
         
@@ -166,10 +169,10 @@ class Column:
         trips.pop(0)
         
         # Send the list of trips to mod
-        self.mod(trips, replace)
+        self.mod(trips, replace=replace, cascade=True)
         
         # Write the ID mapping to file (if applicable)
-        if outputValues:
+        if mapping:
             with open(os.path.join(self.table.gtfsPath,self.name + '_mapping.txt'), 'w') as m:
                 m.write('route_id,sequence_nm\n')
                 for mapping in trips:
