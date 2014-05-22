@@ -145,7 +145,7 @@ class Column:
         else: return None
         
     
-    def makeSequence(self, replace=False, mapping=True):
+    def makeSequence(self, replace=False, mapping=True, prefix=None):
         '''Searches through the column and its relationships and replaces
            every route_id with a number. Numbers are generated
            starting at 1 and increasing by 1 for each subsequent
@@ -162,7 +162,10 @@ class Column:
         with open(self.table.path, 'r') as f:
             for line in f:
                 vals = line.split(',')
-                trips.append((vals[self.columnNumber],i))
+                if prefix:
+                    trips.append((vals[self.columnNumber],prefix + str(i)))
+                else:
+                    trips.append((vals[self.columnNumber],i))
                 i = i + 1
 
         # Remove the column heading        
