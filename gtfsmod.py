@@ -6,7 +6,7 @@ class GTFSModifier:
 
     def __init__(self, path):
         self.path = path
-        
+
         # Set up the tables
         t = {                           # Add all GTFS tables with some basic info about each
               'agency': {'required': True,'columns': ['agency_id',
@@ -107,7 +107,7 @@ class GTFSModifier:
             if os.path.isfile(filePath):
                 exists = True
             self.tables[name] = Table(name,filePath,self.path,vals['columns'], exists)
-            
+
         # Set up direct column relationships
         self.tables['stops'].columns['stop_id'].addRelationship(True, self.tables['stop_times'].columns['stop_id'])
         self.tables['stops'].columns['stop_id'].addRelationship(True, self.tables['transfers'].columns['from_stop_id'])
@@ -117,16 +117,16 @@ class GTFSModifier:
         self.tables['calendar'].columns['service_id'].addRelationship(True, self.tables['trips'].columns['service_id'])
         self.tables['calendar'].columns['service_id'].addRelationship(True, self.tables['calendar_dates'].columns['service_id'])
         self.tables['shapes'].columns['shape_id'].addRelationship(True, self.tables['trips'].columns['shape_id'])
-        
+
         # Set up indirect column relationships
         self.tables['agency'].columns['agency_id'].addRelationship(False,
                                                                    self.tables['routes'].columns['route_id'],
                                                                    self.tables['routes'].columns['agency_id'])
-        self.tables['routes'].columns['route_id'].addRelationship(False, 
+        self.tables['routes'].columns['route_id'].addRelationship(False,
                                                                   self.tables['trips'].columns['trip_id'],
                                                                   self.tables['trips'].columns['route_id'])
-                
-    
+
+
     def makeShapes(self, path):
         '''Creates a geojson file with all of the stops.
            Future enhancement = read the shapes file and take
@@ -134,40 +134,81 @@ class GTFSModifier:
            trip'''
         from geojson import Feature, FeatureCollection, Point
         import geojson
-        
+
         features = []
         stops = self.tables['stops']
         with open(stops.path, 'r') as stopsFile:
             next(stopsFile)         #skip header row
             for line in stopsFile:
                 vals = line.split(',')
-                
+
                 # Establish the point
                 point = Point((float(vals[stops.columns['stop_lon'].columnNumber]),
                                float(vals[stops.columns['stop_lat'].columnNumber])))
-                
+
                 # Establish attribute data
                 attrs = {}
                 for key, col in stops.columns.iteritems():
                     if col.columnNumber is not None:
                         attrs[col.name] = vals[col.columnNumber]
-                
+
                 # Create the feature
                 feat = Feature(geometry=point,
                                id=vals[stops.columns['stop_id'].columnNumber],
                                properties=attrs)
-                
+
                 # Add to the list of features
                 features.append(feat)
-        
+
         fc = FeatureCollection(features)
         with open(path, 'w') as outFile:
             geojson.dump(fc, outFile)
-        
-    
+
+
+    def stopBusCount(self, stop_ids, service_ids, route_ids=None):
+        '''Returns a count of the number of times that a bus of any route (or
+        optionally specified route_ids) stops at the given stop_ids on the
+        service days identified in the list of service_ids.
+        N.B. all inputs are lists'''
+        #process inputs
+        stop_ids = [str(i) for i in stop_ids]
+        service_ids = [str(i) for i in service_ids]
+        if route_ids:
+            route_ids = [str(i) for i in route_ids]
+
+        #get tables
+        trips = self.tables['trips']
+        stopTimes = self.tables['stop_times']
+
+        #build list of trip_ids
+        trip_ids = []
+        with open(trips.path, 'r') as tripsFile:
+            next(tripsFile)
+            for line in tripsFile:
+                vals = line.split(',')
+                if vals[trips.columns['service_id'].columnNumber] in service_ids:
+                    if route_ids:
+                        if vals[trips.columns['route_id'].columnNumber] in route_ids:
+                            trip_ids.append(vals[trips.columns['trip_id'].columnNumber])
+                    else:
+                        trip_ids.append(vals[trips.columns['trip_id'].columnNumber])
+
+        #read the stop times and count every instance that matches the trip_id list
+        count = 0
+        with open(stopTimes.path, 'r') as stopTimesFile:
+            next(stopTimesFile)
+            for line in stopTimesFile:
+                vals = line.split(',')
+                if vals[stopTimes.columns['trip_id'].columnNumber] in trip_ids:
+                    if vals[stopTimes.columns['stop_id'].columnNumber] in stop_ids:
+                        count = count + 1
+
+        return count
+
+
     def __unicode__(self):
         return u'GTFS Modifier Object with path %s' % self.path
-    
-    
+
+
     def __repr__(self):
-        return r'GTFS Modifier Object with path %s' % self.path    
+        return r'GTFS Modifier Object with path %s' % self.path
