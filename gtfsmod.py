@@ -165,13 +165,16 @@ class GTFSModifier:
             geojson.dump(fc, outFile)
 
 
-    def stopBusCount(self, stop_ids, service_ids, route_ids=None):
-        '''Returns a count of the number of times that a bus of any route (or
-        optionally specified route_ids) stops at the given stop_ids on the
-        service days identified in the list of service_ids.
+    def stopBusCount(self, stop_ids_in, service_ids, route_ids=None):
+        '''Returns a dictionary of stop_ids and a count of the number of times
+        that a bus of any route (or optionally specified route_ids) stops at the
+        given stop_ids on the service days identified in the list of service_ids.
         N.B. all inputs are lists'''
         #process inputs
-        stop_ids = [str(i) for i in stop_ids]
+        stop_ids_in = [str(i) for i in stop_ids_in]
+        stop_ids = dict()
+        for i in stop_ids_in:
+            stop_ids[i] = 0
         service_ids = [str(i) for i in service_ids]
         if route_ids:
             route_ids = [str(i) for i in route_ids]
@@ -193,17 +196,17 @@ class GTFSModifier:
                     else:
                         trip_ids.append(vals[trips.columns['trip_id'].columnNumber])
 
-        #read the stop times and count every instance that matches the trip_id list
-        count = 0
+        #read the stop times and count every instance that matches the trip_id and stop_id list
         with open(stopTimes.path, 'r') as stopTimesFile:
             next(stopTimesFile)
             for line in stopTimesFile:
                 vals = line.split(',')
                 if vals[stopTimes.columns['trip_id'].columnNumber] in trip_ids:
-                    if vals[stopTimes.columns['stop_id'].columnNumber] in stop_ids:
-                        count = count + 1
+                    if vals[stopTimes.columns['stop_id'].columnNumber] in stop_ids_in:
+                        stop_id = vals[stopTimes.columns['stop_id'].columnNumber]
+                        stop_ids[stop_id] = stop_ids[stop_id] + 1
 
-        return count
+        return stop_ids
 
 
     def __unicode__(self):
