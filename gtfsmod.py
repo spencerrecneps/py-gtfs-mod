@@ -176,9 +176,9 @@ class GTFSModifier:
         minutes, and the last two digits being the seconds'''
         #process inputs
         if start_time is None and end_time is not None:
-            raise "End time must be given with start time"
+            raise Exception("Start time must be given with end time")
         if end_time is None and start_time is not None:
-            raise "Start time must be given with end time"
+            raise Exception("End time must be given with start time")
         stop_ids_in = [str(i) for i in stop_ids_in]
         stop_ids = dict()
         for i in stop_ids_in:
@@ -211,7 +211,7 @@ class GTFSModifier:
                 vals = line.split(',')
                 tripId = vals[stopTimes.columns['trip_id'].columnNumber]
                 stopId = vals[stopTimes.columns['stop_id'].columnNumber]
-                depTime = vals[stopTimes.columns['departure_time'].columnNumber]
+                depTime = vals[stopTimes.columns['departure_time'].columnNumber].strip()
                 if tripId in trip_ids:
                     if stopId in stop_ids_in:
                         if start_time and end_time:
