@@ -1,4 +1,5 @@
 import os
+import time
 from table import Table
 
 class GTFSModifier:
@@ -165,12 +166,19 @@ class GTFSModifier:
             geojson.dump(fc, outFile)
 
 
-    def stopBusCount(self, stop_ids_in, service_ids, route_ids=None):
+    def stopBusCount(self, stop_ids_in, service_ids, route_ids=None, start_time=None, end_time=None):
         '''Returns a dictionary of stop_ids and a count of the number of times
         that a bus of any route (or optionally specified route_ids) stops at the
         given stop_ids on the service days identified in the list of service_ids.
-        N.B. all inputs are lists'''
+        N.B. all inputs are lists except start_time and end_time.
+        Start and end times are given in the format "HH:MM:SS" with the first two
+        digits being the hour (in 24 hour time), the middle two digits being the
+        minutes, and the last two digits being the seconds'''
         #process inputs
+        if start_time is None and end_time is not None:
+            raise Exception("Start time must be given with end time")
+        if end_time is None and start_time is not None:
+            raise Exception("End time must be given with start time")
         stop_ids_in = [str(i) for i in stop_ids_in]
         stop_ids = dict()
         for i in stop_ids_in:
@@ -201,10 +209,27 @@ class GTFSModifier:
             next(stopTimesFile)
             for line in stopTimesFile:
                 vals = line.split(',')
-                if vals[stopTimes.columns['trip_id'].columnNumber] in trip_ids:
-                    if vals[stopTimes.columns['stop_id'].columnNumber] in stop_ids_in:
-                        stop_id = vals[stopTimes.columns['stop_id'].columnNumber]
-                        stop_ids[stop_id] = stop_ids[stop_id] + 1
+                tripId = vals[stopTimes.columns['trip_id'].columnNumber]
+                stopId = vals[stopTimes.columns['stop_id'].columnNumber]
+                depTime = vals[stopTimes.columns['departure_time'].columnNumber].strip()
+
+                # check for times > 24 hrs
+                depCheck = depTime.split(':',1)
+                if int(depCheck[0]) > 23:
+                    depCheck[0] = '00'
+                    depTime = ':'.join(depCheck)
+
+                if tripId in trip_ids:
+                    if stopId in stop_ids_in:
+                        if start_time and end_time:
+                            startCutoff = time.strptime(start_time,'%H:%M:%S')
+                            endCutoff = time.strptime(end_time,'%H:%M:%S')
+                            busTime = time.strptime(depTime,'%H:%M:%S')
+                            if busTime < startCutoff:
+                                continue    #ignore this row
+                            if busTime > endCutoff:
+                                continue    #ignore this row
+                        stop_ids[stopId] = stop_ids[stopId] + 1
 
         return stop_ids
 
