@@ -212,6 +212,13 @@ class GTFSModifier:
                 tripId = vals[stopTimes.columns['trip_id'].columnNumber]
                 stopId = vals[stopTimes.columns['stop_id'].columnNumber]
                 depTime = vals[stopTimes.columns['departure_time'].columnNumber].strip()
+
+                # check for times > 24 hrs
+                depCheck = depTime.split(':',1)
+                if int(depCheck[0]) > 23:
+                    depCheck[0] = '00'
+                    depTime = ':'.join(depCheck)
+
                 if tripId in trip_ids:
                     if stopId in stop_ids_in:
                         if start_time and end_time:
